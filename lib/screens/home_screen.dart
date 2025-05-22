@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/question_provider.dart';
 import '../widgets/drawer_menu.dart';
 import '../widgets/question_tile.dart';
+import 'add_question_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -22,7 +23,10 @@ class HomeScreen extends StatelessWidget {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: navigate to add question screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddQuestionScreen()),
+          );
         },
         child: const Icon(Icons.add),
       ),

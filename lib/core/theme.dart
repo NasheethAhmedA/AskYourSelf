@@ -7,6 +7,9 @@ class AppTheme {
     scaffoldBackgroundColor: Colors.white,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.deepPurple[400],
+      foregroundColor: Colors.white, // <-- back button, drawer icon, title text
+      iconTheme:
+          const IconThemeData(color: Colors.white), // <-- fallback icon color
       centerTitle: true,
       titleTextStyle: const TextStyle(
         fontSize: 20,
