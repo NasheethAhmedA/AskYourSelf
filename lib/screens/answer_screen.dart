@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
+import 'package:intl/intl.dart'; // add this at the top
+import '../db/database_helper.dart';
+import '../models/answer_model.dart';
 
 class AnswerScreen extends StatefulWidget {
   final Question question;
@@ -12,7 +15,7 @@ class AnswerScreen extends StatefulWidget {
 
 class _AnswerScreenState extends State<AnswerScreen> {
   String? _selectedMCQ;
-  Set<String> _selectedMSQ = {};
+  final Set<String> _selectedMSQ = {};
   double _sliderValue = 0;
   int _ratingValue = 0;
   final _textController = TextEditingController();
@@ -26,31 +29,71 @@ class _AnswerScreenState extends State<AnswerScreen> {
     }
   }
 
-  void _submitAnswer() {
-    dynamic answer;
+  void _submitAnswer() async {
+    dynamic response;
+
     switch (widget.question.type) {
       case 'Text':
-        answer = _textController.text;
+        response = _textController.text.trim();
+        if (response.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please write your answer.')),
+          );
+          return;
+        }
         break;
+
       case 'MCQ':
-        answer = _selectedMCQ;
+        if (_selectedMCQ == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select an option.')),
+          );
+          return;
+        }
+        response = _selectedMCQ!;
         break;
+
       case 'MSQ':
-        answer = _selectedMSQ.toList();
+        if (_selectedMSQ.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select at least one option.')),
+          );
+          return;
+        }
+        response = _selectedMSQ.toList();
         break;
+
       case 'Slider':
-        answer = _sliderValue;
+        response = _sliderValue.toStringAsFixed(0);
         break;
+
       case 'Rating':
-        answer = _ratingValue;
+        if (_ratingValue == 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please select a rating.')),
+          );
+          return;
+        }
+        response = _ratingValue.toString();
         break;
     }
 
-    // TODO: Save answer to database by date
+    final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+    final answer = Answer(
+      questionId: widget.question.id!,
+      answer: response.toString(),
+      date: today,
+    );
+
+    await DatabaseHelper.instance.insertAnswer(answer);
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Answer submitted!')),
+      const SnackBar(content: Text('Answer saved!')),
     );
+
     Navigator.pop(context);
   }
 

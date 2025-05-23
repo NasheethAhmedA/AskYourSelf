@@ -3,8 +3,16 @@ import 'package:provider/provider.dart';
 import 'core/theme.dart';
 import 'providers/question_provider.dart';
 import 'screens/home_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  }
   runApp(
     MultiProvider(
       providers: [
