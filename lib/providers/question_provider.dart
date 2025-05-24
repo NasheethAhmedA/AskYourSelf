@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
+import '../db/database_helper.dart';
 
 class QuestionProvider with ChangeNotifier {
   List<Question> _questions = [];
@@ -11,13 +12,43 @@ class QuestionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void addQuestion(Question question) {
-    _questions.add(question);
+  Future<void> addQuestion(Question question) async {
+    final id = await DatabaseHelper.instance.insertQuestion(question);
+    final saved = Question(
+      id: id,
+      text: question.text,
+      type: question.type,
+      askAgainAfterDays: question.askAgainAfterDays,
+      config: question.config,
+    );
+    _questions.add(saved);
     notifyListeners();
   }
 
-  void removeQuestion(Question question) {
-    _questions.remove(question);
+  // get a question by ID from database helper
+  Future<Question?> getQuestionById(int id) async {
+    final question = await DatabaseHelper.instance.fetchQuestionById(id);
+    if (question != null) {
+      return question;
+    }
+    return null;
+  }
+
+  Future<void> removeQuestion(Question question) async {
+    if (question.id != null) {
+      await DatabaseHelper.instance.deleteQuestion(question.id!);
+    }
+    _questions.removeWhere((q) => q.id == question.id);
     notifyListeners();
+  }
+
+  Future<void> loadVisibleQuestions() async {
+    final list = await DatabaseHelper.instance.getVisibleQuestions();
+    setQuestions(list);
+  }
+
+  Future<void> reloadAllQuestions() async {
+    final all = await DatabaseHelper.instance.fetchQuestions();
+    setQuestions(all);
   }
 }

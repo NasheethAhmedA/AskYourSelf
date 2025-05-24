@@ -81,9 +81,10 @@ class _AnswerScreenState extends State<AnswerScreen> {
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
     final answer = Answer(
+      id: null, // explicitly null for SQLite auto ID
       questionId: widget.question.id!,
-      answer: response.toString(),
-      date: today,
+      content: response.toString(),
+      timestamp: DateTime.now(),
     );
 
     await DatabaseHelper.instance.insertAnswer(answer);

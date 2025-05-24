@@ -5,8 +5,21 @@ import '../widgets/drawer_menu.dart';
 import '../widgets/question_tile.dart';
 import 'add_question_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<void> _loadQuestions;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuestions = context.read<QuestionProvider>().loadVisibleQuestions();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +28,23 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text("AskYourSelf")),
       drawer: const DrawerMenu(),
-      body: questions.isEmpty
-          ? const Center(child: Text("No questions yet."))
-          : ListView.builder(
-              itemCount: questions.length,
-              itemBuilder: (ctx, i) => QuestionTile(question: questions[i]),
-            ),
+      body: FutureBuilder(
+        future: _loadQuestions,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (questions.isEmpty) {
+            return const Center(child: Text("No questions for today."));
+          }
+
+          return ListView.builder(
+            itemCount: questions.length,
+            itemBuilder: (ctx, i) => QuestionTile(question: questions[i]),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
