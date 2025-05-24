@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../db/database_helper.dart';
 import '../models/answer_model.dart';
+import '../models/question_model.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -18,6 +19,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<Answer>> _answersByDate = {};
+  Map<int, Question> _questionDetails = {};
 
   @override
   void initState() {
@@ -34,9 +36,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   Future<void> _loadAnswers() async {
+    // Fetch answers
     final answers = await DatabaseHelper.instance.getAllAnswers();
     final Map<DateTime, List<Answer>> answersMap = {};
-
     for (var answer in answers) {
       final date = DateTime.utc(
         answer.timestamp.year,
@@ -50,9 +52,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
       }
     }
 
+    // Fetch questions
+    final questionsList = await Provider.of<QuestionProvider>(context, listen: false).fetchAllQuestionsFromDb();
+    final Map<int, Question> qDetails = {};
+    for (var q in questionsList) {
+      if (q.id != null) {
+        qDetails[q.id!] = q;
+      }
+    }
+
     setState(() {
       _answersByDate = answersMap;
-      _selectedAnswers.value = _getAnswersForDay(_selectedDay!);
+      _questionDetails = qDetails; // Store question details
+      if (_selectedDay != null) {
+        _selectedAnswers.value = _getAnswersForDay(_selectedDay!);
+      }
     });
   }
 
@@ -109,8 +123,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   itemCount: value.length,
                   itemBuilder: (context, index) {
                     final answer = value[index];
+                    final question = _questionDetails[answer.questionId];
+                    final questionText = question?.text ?? 'Question ID: ${answer.questionId} (Not found)';
+
                     return ListTile(
-                      title: Text(answer.questionId.toString()),
+                      title: Text(questionText),
                       subtitle: Text(
                         'Answered: ${answer.content} on ${answer.timestamp.toLocal()}',
                       ),
