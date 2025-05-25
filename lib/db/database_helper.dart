@@ -137,7 +137,7 @@ class DatabaseHelper {
         'answers',
         where: 'questionId = ?',
         whereArgs: [question.id],
-        orderBy: 'date DESC',
+        orderBy: 'timestamp DESC',
         limit: 1,
       );
 
@@ -145,7 +145,7 @@ class DatabaseHelper {
         questions.add(question); // never answered before
       } else {
         final lastAnswerDate =
-            DateTime.parse(answerRes.first['date'] as String);
+            DateTime.parse(answerRes.first['timestamp'] as String);
         final nextAvailableDate =
             lastAnswerDate.add(Duration(days: question.askAgainAfterDays));
 
@@ -176,7 +176,7 @@ class DatabaseHelper {
       'answers',
       where: 'questionId = ?',
       whereArgs: [questionId],
-      orderBy: 'date DESC',
+      orderBy: 'timestamp DESC',
     );
     return result.map((map) => Answer.fromMap(map)).toList();
   }

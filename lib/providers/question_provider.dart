@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/question_model.dart';
+import '../models/answer_model.dart';
 import '../db/database_helper.dart';
 
 class QuestionProvider with ChangeNotifier {
@@ -50,5 +51,14 @@ class QuestionProvider with ChangeNotifier {
   Future<void> reloadAllQuestions() async {
     final all = await DatabaseHelper.instance.fetchQuestions();
     setQuestions(all);
+  }
+
+  Future<void> submitAnswer(Answer answer) async {
+    await DatabaseHelper.instance.insertAnswer(answer);
+    await loadVisibleQuestions();
+  }
+
+  Future<List<Question>> fetchAllQuestionsFromDb() async {
+    return await DatabaseHelper.instance.fetchQuestions();
   }
 }

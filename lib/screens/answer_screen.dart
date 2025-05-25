@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/question_provider.dart';
 import '../models/question_model.dart';
 import 'package:intl/intl.dart'; // add this at the top
 import '../db/database_helper.dart';
@@ -87,7 +89,9 @@ class _AnswerScreenState extends State<AnswerScreen> {
       timestamp: DateTime.now(),
     );
 
-    await DatabaseHelper.instance.insertAnswer(answer);
+    // OLD LINE: await DatabaseHelper.instance.insertAnswer(answer);
+    // NEW LINE:
+    await Provider.of<QuestionProvider>(context, listen: false).submitAnswer(answer);
 
     if (!mounted) return;
 
