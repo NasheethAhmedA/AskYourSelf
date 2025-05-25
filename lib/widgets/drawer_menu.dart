@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../screens/calendar_screen.dart';
+import '../screens/manage_questions_screen.dart';
 
 class DrawerMenu extends StatelessWidget {
   const DrawerMenu({super.key});
@@ -30,6 +31,20 @@ class DrawerMenu extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const CalendarScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.edit_note, color: theme.iconTheme.color),
+            title: Text(
+              "Manage Questions",
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ManageQuestionsScreen()),
               );
             },
           ),
