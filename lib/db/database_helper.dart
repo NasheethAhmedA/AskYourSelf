@@ -68,23 +68,26 @@ class DatabaseHelper {
     });
   }
 
+  // Helper method to convert a map to a Question object
+  Question _mapToQuestion(Map<String, dynamic> map) {
+    final rawConfig = map['config'] as String?;
+    final configMap = rawConfig != null && rawConfig.isNotEmpty
+        ? Map<String, dynamic>.from(jsonDecode(rawConfig) as Map)
+        : <String, dynamic>{};
+
+    return Question(
+      id: map['id'] as int,
+      text: map['text'] as String,
+      type: map['type'] as String,
+      askAgainAfterDays: map['askAgainAfterDays'] as int,
+      config: configMap,
+    );
+  }
+
   Future<List<Question>> fetchQuestions() async {
     final db = await database;
     final result = await db.query('questions');
-    return result.map((q) {
-      final rawConfig = q['config'] as String?;
-      final configMap = rawConfig != null
-          ? Map<String, dynamic>.from(jsonDecode(rawConfig) as Map)
-          : <String, dynamic>{};
-
-      return Question(
-        id: q['id'] as int,
-        text: q['text'] as String,
-        type: q['type'] as String,
-        askAgainAfterDays: q['askAgainAfterDays'] as int,
-        config: configMap,
-      );
-    }).toList();
+    return result.map((q) => _mapToQuestion(q)).toList();
   }
 
   Future<Question?> fetchQuestionById(int id) async {
@@ -95,19 +98,7 @@ class DatabaseHelper {
       whereArgs: [id],
     );
     if (result.isNotEmpty) {
-      final q = result.first;
-      final rawConfig = q['config'] as String?;
-      final configMap = rawConfig != null
-          ? Map<String, dynamic>.from(jsonDecode(rawConfig) as Map)
-          : <String, dynamic>{};
-
-      return Question(
-        id: q['id'] as int,
-        text: q['text'] as String,
-        type: q['type'] as String,
-        askAgainAfterDays: q['askAgainAfterDays'] as int,
-        config: configMap,
-      );
+      return _mapToQuestion(result.first);
     }
     return null;
   }
@@ -119,19 +110,8 @@ class DatabaseHelper {
     final qRows = await db.query('questions');
     final questions = <Question>[];
 
-    for (final q in qRows) {
-      final rawConfig = q['config'] as String?;
-      final configMap = rawConfig != null
-          ? Map<String, dynamic>.from(jsonDecode(rawConfig))
-          : <String, dynamic>{};
-
-      final question = Question(
-        id: q['id'] as int,
-        text: q['text'] as String,
-        type: q['type'] as String,
-        askAgainAfterDays: q['askAgainAfterDays'] as int,
-        config: configMap,
-      );
+    for (final qMap in qRows) {
+      final question = _mapToQuestion(qMap);
 
       final answerRes = await db.query(
         'answers',
@@ -160,7 +140,32 @@ class DatabaseHelper {
 
   Future<int> deleteQuestion(int id) async {
     final db = await database;
-    return await db.delete('questions', where: 'id = ?', whereArgs: [id]);
+    int result = 0;
+    await db.transaction((txn) async {
+      // Delete associated answers first
+      await txn.delete(
+        'answers',
+        where: 'questionId = ?',
+        whereArgs: [id],
+      );
+      // Then delete the question
+      result = await txn.delete(
+        'questions',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
+    return result; // This will be the result of deleting the question row
+  }
+
+  Future<int> updateQuestionAskAgainAfterDays(int id, int newAskAgainAfterDays) async {
+    final db = await database;
+    return await db.update(
+      'questions', // Table name
+      {'askAgainAfterDays': newAskAgainAfterDays}, // Values to update
+      where: 'id = ?', // Where clause
+      whereArgs: [id], // Arguments for where clause
+    );
   }
 
   // ANSWERS
@@ -183,10 +188,14 @@ class DatabaseHelper {
 
   Future<Answer?> fetchAnswerForToday(int questionId, String date) async {
     final db = await database;
+    // TODO: Using `LIKE` for date matching on a timestamp string can be problematic
+    // if timestamps are not stored in a consistent UTC format or if local time
+    // complexities (like DST) are involved. Consider storing dates as epoch/ISO 8601 UTC
+    // and using date functions if the DB supports them, or fetching relevant range and filtering in Dart.
     final result = await db.query(
       'answers',
       where: 'questionId = ? AND timestamp LIKE ?',
-      whereArgs: [questionId, '$date%'], // Match date only
+      whereArgs: [questionId, '$date%'], // Match date part of the timestamp
     );
     if (result.isNotEmpty) {
       return Answer.fromMap(result.first);

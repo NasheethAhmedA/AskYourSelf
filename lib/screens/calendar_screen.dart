@@ -1,10 +1,11 @@
-import 'package:askyourself/providers/question_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/question_provider.dart'; // Corrected import path
 import 'package:table_calendar/table_calendar.dart';
 import '../db/database_helper.dart';
 import '../models/answer_model.dart';
 import '../models/question_model.dart';
+import 'package:intl/intl.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({Key? key}) : super(key: key);
@@ -125,11 +126,32 @@ class _CalendarScreenState extends State<CalendarScreen> {
                     final answer = value[index];
                     final question = _questionDetails[answer.questionId];
                     final questionText = question?.text ?? 'Question ID: ${answer.questionId} (Not found)';
+                    final String formattedTime = DateFormat.jm().format(answer.timestamp.toLocal());
 
-                    return ListTile(
-                      title: Text(questionText),
-                      subtitle: Text(
-                        'Answered: ${answer.content} on ${answer.timestamp.toLocal()}',
+                    return Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                      elevation: 2.0,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              questionText,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8.0),
+                            Text(
+                              'Answer: ${answer.content}',
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            const SizedBox(height: 4.0),
+                            Text(
+                              'Time: $formattedTime',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
