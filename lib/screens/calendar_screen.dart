@@ -21,6 +21,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime? _selectedDay;
   Map<DateTime, List<Answer>> _answersByDate = {};
   Map<int, Question> _questionDetails = {};
+  int? selectedQuestionId;
+  List<Question> allQuestions = [];
 
   @override
   void initState() {
@@ -55,6 +57,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
     // Fetch questions
     final questionsList = await Provider.of<QuestionProvider>(context, listen: false).fetchAllQuestionsFromDb();
+    allQuestions = questionsList; // Store all questions
     final Map<int, Question> qDetails = {};
     for (var q in questionsList) {
       if (q.id != null) {
@@ -72,7 +75,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<Answer> _getAnswersForDay(DateTime day) {
-    return _answersByDate[DateTime.utc(day.year, day.month, day.day)] ?? [];
+    final dayAnswers = _answersByDate[DateTime.utc(day.year, day.month, day.day)] ?? [];
+    if (selectedQuestionId == null) {
+      return dayAnswers;
+    } else {
+      return dayAnswers.where((answer) => answer.questionId == selectedQuestionId).toList();
+    }
   }
 
   @override
@@ -83,6 +91,38 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            child: DropdownButtonFormField<int?>(
+              decoration: const InputDecoration(
+                labelText: 'Filter by Question',
+                border: OutlineInputBorder(),
+              ),
+              value: selectedQuestionId,
+              hint: selectedQuestionId == null ? const Text("All Questions") : null,
+              isExpanded: true,
+              items: [
+                const DropdownMenuItem<int?>(
+                  value: null,
+                  child: Text("All Questions"),
+                ),
+                ...allQuestions.map((Question question) {
+                  return DropdownMenuItem<int?>(
+                    value: question.id,
+                    child: Text(question.text, overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+              ],
+              onChanged: (int? value) {
+                setState(() {
+                  selectedQuestionId = value;
+                });
+                if (_selectedDay != null) {
+                  _selectedAnswers.value = _getAnswersForDay(_selectedDay!);
+                }
+              },
+            ),
+          ),
           TableCalendar<Answer>(
             firstDay: DateTime.utc(2000, 1, 1),
             lastDay: DateTime.utc(2100, 12, 31),
@@ -116,9 +156,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
               valueListenable: _selectedAnswers,
               builder: (context, value, _) {
                 if (value.isEmpty) {
-                  return const Center(
-                    child: Text('No answers for this day.'),
-                  );
+                  if (selectedQuestionId == null) {
+                    return const Center(
+                      child: Text('No answers for this day.'),
+                    );
+                  } else {
+                    return const Center(
+                      child: Text('No answers for this question on this day.'),
+                    );
+                  }
                 }
                 return ListView.builder(
                   itemCount: value.length,
