@@ -4,6 +4,9 @@ class AppTheme {
   static final ThemeData lightTheme = ThemeData(
     primarySwatch: Colors.deepPurple,
     useMaterial3: true,
+    iconTheme: const IconThemeData(
+      color: Colors.deepPurple,
+    ),
     scaffoldBackgroundColor: Colors.white,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.deepPurple[400],

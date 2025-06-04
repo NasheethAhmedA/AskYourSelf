@@ -1,4 +1,6 @@
+import 'package:askyourself/screens/support_us_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/manage_questions_screen.dart';
 
@@ -44,7 +46,22 @@ class DrawerMenu extends StatelessWidget {
               Navigator.pop(context); // Close drawer first
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ManageQuestionsScreen()),
+                MaterialPageRoute(
+                    builder: (_) => const ManageQuestionsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.support, color: theme.iconTheme.color),
+            title: Text(
+              "Support Us",
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SupportUsScreen()),
               );
             },
           ),
