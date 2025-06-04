@@ -56,7 +56,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     // Fetch questions
-    final questionsList = await Provider.of<QuestionProvider>(context, listen: false).fetchAllQuestionsFromDb();
+    final questionsList =
+        await Provider.of<QuestionProvider>(context, listen: false)
+            .fetchAllQuestionsFromDb();
     allQuestions = questionsList; // Store all questions
     final Map<int, Question> qDetails = {};
     for (var q in questionsList) {
@@ -75,11 +77,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   List<Answer> _getAnswersForDay(DateTime day) {
-    final dayAnswers = _answersByDate[DateTime.utc(day.year, day.month, day.day)] ?? [];
+    final dayAnswers =
+        _answersByDate[DateTime.utc(day.year, day.month, day.day)] ?? [];
     if (selectedQuestionId == null) {
       return dayAnswers;
     } else {
-      return dayAnswers.where((answer) => answer.questionId == selectedQuestionId).toList();
+      return dayAnswers
+          .where((answer) => answer.questionId == selectedQuestionId)
+          .toList();
     }
   }
 
@@ -91,15 +96,19 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: Column(
         children: [
+          const SizedBox(height: 10.0),
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
             child: DropdownButtonFormField<int?>(
               decoration: const InputDecoration(
                 labelText: 'Filter by Question',
                 border: OutlineInputBorder(),
               ),
               value: selectedQuestionId,
-              hint: selectedQuestionId == null ? const Text("All Questions") : null,
+              hint: selectedQuestionId == null
+                  ? const Text("All Questions")
+                  : null,
               isExpanded: true,
               items: [
                 const DropdownMenuItem<int?>(
@@ -171,11 +180,14 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   itemBuilder: (context, index) {
                     final answer = value[index];
                     final question = _questionDetails[answer.questionId];
-                    final questionText = question?.text ?? 'Question ID: ${answer.questionId} (Not found)';
-                    final String formattedTime = DateFormat.jm().format(answer.timestamp.toLocal());
+                    final questionText = question?.text ??
+                        'Question ID: ${answer.questionId} (Not found)';
+                    final String formattedTime =
+                        DateFormat.jm().format(answer.timestamp.toLocal());
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 12.0, vertical: 6.0),
                       elevation: 2.0,
                       child: Padding(
                         padding: const EdgeInsets.all(12.0),
@@ -184,7 +196,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
                           children: [
                             Text(
                               questionText,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                             const SizedBox(height: 8.0),
                             Text(
