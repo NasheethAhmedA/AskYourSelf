@@ -4,6 +4,9 @@
 ---
 AskYourSelf is a Flutter app that helps you build introspection habits by asking yourself recurring questions — daily, weekly, or monthly. You choose the question types (MCQ, long text, slider, etc.) and reflect with a calendar view of your past answers. Built using Provider, SQLite, and clean Material UI.
 
+## Download the app for android
+[Download APK](https://github.com/NasheethAhmedA/AskYourSelf/releases/latest/download/askyourself.apk) and install it on your android device.
+
 ## ✨ Features
 
 - 📝 Add custom questions

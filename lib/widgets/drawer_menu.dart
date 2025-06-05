@@ -13,6 +13,7 @@ class DrawerMenu extends StatelessWidget {
 
     return Drawer(
       child: ListView(
+        padding: const EdgeInsets.only(top: 0),
         children: [
           DrawerHeader(
             decoration: BoxDecoration(color: theme.colorScheme.primary),
