@@ -106,6 +106,7 @@ class DatabaseHelper {
   Future<List<Question>> getVisibleQuestions() async {
     final db = await database;
     final now = DateTime.now();
+    final nowDate = DateTime(now.year, now.month, now.day);
 
     final qRows = await db.query('questions');
     final questions = <Question>[];
@@ -124,12 +125,15 @@ class DatabaseHelper {
       if (answerRes.isEmpty) {
         questions.add(question); // never answered before
       } else {
-        final lastAnswerDate =
+        final lastAnswerDateTime =
             DateTime.parse(answerRes.first['timestamp'] as String);
-        final nextAvailableDate =
-            lastAnswerDate.add(Duration(days: question.askAgainAfterDays));
+        final nextAvailableDateTime =
+            lastAnswerDateTime.add(Duration(days: question.askAgainAfterDays));
 
-        if (!now.isBefore(nextAvailableDate)) {
+        final nextAvailableDateOnly = DateTime(nextAvailableDateTime.year,
+            nextAvailableDateTime.month, nextAvailableDateTime.day);
+
+        if (!nowDate.isBefore(nextAvailableDateOnly)) {
           questions.add(question); // eligible again
         }
       }
@@ -158,7 +162,8 @@ class DatabaseHelper {
     return result; // This will be the result of deleting the question row
   }
 
-  Future<int> updateQuestionAskAgainAfterDays(int id, int newAskAgainAfterDays) async {
+  Future<int> updateQuestionAskAgainAfterDays(
+      int id, int newAskAgainAfterDays) async {
     final db = await database;
     return await db.update(
       'questions', // Table name

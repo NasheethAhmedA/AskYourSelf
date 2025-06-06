@@ -35,15 +35,6 @@ class QuestionProvider with ChangeNotifier {
     return null;
   }
 
-  // This method seems to be unused. Deletion is handled by permanentlyDeleteQuestion.
-  // Future<void> removeQuestion(Question question) async {
-  //   if (question.id != null) {
-  //     await DatabaseHelper.instance.deleteQuestion(question.id!);
-  //   }
-  //   _questions.removeWhere((q) => q.id == question.id);
-  //   notifyListeners();
-  // }
-
   Future<void> loadVisibleQuestions() async {
     final list = await DatabaseHelper.instance.getVisibleQuestions();
     setQuestions(list);
@@ -67,11 +58,13 @@ class QuestionProvider with ChangeNotifier {
     await DatabaseHelper.instance.deleteQuestion(questionId);
     // Refresh the main _questions list (consumed by HomeScreen).
     // notifyListeners() is called by setQuestions within loadVisibleQuestions.
-    await loadVisibleQuestions(); 
+    await loadVisibleQuestions();
   }
 
-  Future<void> updateQuestionAskAgainAfterDays(int questionId, int newDays) async {
-    await DatabaseHelper.instance.updateQuestionAskAgainAfterDays(questionId, newDays);
+  Future<void> updateQuestionAskAgainAfterDays(
+      int questionId, int newDays) async {
+    await DatabaseHelper.instance
+        .updateQuestionAskAgainAfterDays(questionId, newDays);
     // Refresh the main _questions list (consumed by HomeScreen).
     // notifyListeners() is called by setQuestions within loadVisibleQuestions.
     await loadVisibleQuestions();
