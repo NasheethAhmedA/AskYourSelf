@@ -288,8 +288,6 @@ class DatabaseHelper {
     if (existing.isNotEmpty) {
       // Update existing answer (e.g., content might have changed)
       final existingId = existing.first['id'] as int;
-      // Update existing answer (e.g., content might have changed)
-      final existingId = existing.first['id'] as int;
       Map<String, dynamic> valuesToUpdate = answer.toMap();
       valuesToUpdate.remove('id'); // Ensure 'id' is not part of the SET clause
 
@@ -304,7 +302,8 @@ class DatabaseHelper {
       // Insert new answer
       // The 'id' field from JSON (if present in answer.id) is ignored.
       Map<String, dynamic> valuesToInsert = answer.toMap();
-      valuesToInsert.remove('id'); // Ensure 'id' is not passed for insert if it was somehow set
+      valuesToInsert.remove(
+          'id'); // Ensure 'id' is not passed for insert if it was somehow set
       return await db.insert('answers', valuesToInsert);
     }
   }

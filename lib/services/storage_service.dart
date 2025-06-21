@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+// import 'dart:html' as html; // Only for web export, not used in mobile
 import 'package:askyourself/db/database_helper.dart';
 import 'package:askyourself/models/answer_model.dart';
 import 'package:askyourself/models/question_model.dart';
@@ -31,7 +32,7 @@ class StorageService {
 
     // Mobile/Desktop specific permission for external storage
     if (Platform.isAndroid || Platform.isIOS) {
-       // For Android, specific storage permissions might be nuanced based on SDK level
+      // For Android, specific storage permissions might be nuanced based on SDK level
       // For simplicity, using Permission.storage, but more specific ones like
       // Permission.manageExternalStorage might be needed for broader access on Android 11+
       // However, for user-selected paths via file_picker, direct broad storage permission
@@ -107,7 +108,8 @@ class StorageService {
             })
         .toList();
 
-    final List<Map<String, dynamic>> answerMaps = answers.map((a) => a.toMap()).toList();
+    final List<Map<String, dynamic>> answerMaps =
+        answers.map((a) => a.toMap()).toList();
 
     final Map<String, dynamic> data = {
       'questions': questionMaps,
@@ -121,17 +123,17 @@ class StorageService {
     // Conditional import or a web-specific service implementation is needed.
     // For now, this is a placeholder for web export.
     if (kDebugMode) {
-      print("Web export initiated. Data (first 100 chars): ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}");
+      print(
+          "Web export initiated. Data (first 100 chars): ${jsonString.substring(0, jsonString.length > 100 ? 100 : jsonString.length)}");
       // In a real web app, you'd use:
       // final blob = html.Blob([bytes]);
       // final url = html.Url.createObjectUrlFromBlob(blob);
-      // final anchor = html.AnchorElement(href: url)
+      // html.AnchorElement(href: url)
       //   ..setAttribute("download", "askyourself.json")
       //   ..click();
       // html.Url.revokeObjectUrl(url);
     }
   }
-
 
   Future<void> importDatabase() async {
     if (kIsWeb) {
@@ -140,9 +142,9 @@ class StorageService {
     }
 
     if (Platform.isAndroid || Platform.isIOS) {
-        if (!await _requestPermission(Permission.storage)) {
-            throw Exception("Storage permission not granted");
-        }
+      if (!await _requestPermission(Permission.storage)) {
+        throw Exception("Storage permission not granted");
+      }
     }
 
     try {
@@ -173,7 +175,9 @@ class StorageService {
             text: questionMap['text'] as String,
             type: questionMap['type'] as String,
             askAgainAfterDays: questionMap['askAgainAfterDays'] as int,
-            config: questionMap['config'] != null ? Map<String, dynamic>.from(questionMap['config']) : {},
+            config: questionMap['config'] != null
+                ? Map<String, dynamic>.from(questionMap['config'])
+                : {},
           );
 
           // Check if question exists (e.g., by text) to avoid duplicates or to update.
@@ -183,7 +187,8 @@ class StorageService {
           // a more robust check (e.g., by text or a unique content hash) is needed.
           // Let's assume `insertOrUpdateQuestion` handles this logic based on content.
 
-          final newQuestionId = await _dbHelper.insertOrUpdateQuestion(questionToImport);
+          final newQuestionId =
+              await _dbHelper.insertOrUpdateQuestion(questionToImport);
 
           if (oldQuestionId != null) {
             oldToNewQuestionIdMap[oldQuestionId] = newQuestionId;
@@ -194,9 +199,12 @@ class StorageService {
         for (var aData in answerList) {
           final answerMap = aData as Map<String, dynamic>;
           final oldQuestionId = answerMap['questionId'] as int?;
-          int? newQuestionId = oldQuestionId != null ? oldToNewQuestionIdMap[oldQuestionId] : null;
+          int? newQuestionId = oldQuestionId != null
+              ? oldToNewQuestionIdMap[oldQuestionId]
+              : null;
 
-          if (newQuestionId != null) { // Only import answers for which we found/created a question
+          if (newQuestionId != null) {
+            // Only import answers for which we found/created a question
             Answer answerToImport = Answer(
               // id: null, // Let DB assign new ID
               questionId: newQuestionId,
@@ -210,7 +218,8 @@ class StorageService {
             await _dbHelper.insertOrUpdateAnswer(answerToImport);
           } else {
             if (kDebugMode) {
-              print("Skipping answer for old question ID $oldQuestionId as it was not mapped to a new ID.");
+              print(
+                  "Skipping answer for old question ID $oldQuestionId as it was not mapped to a new ID.");
             }
           }
         }
@@ -256,9 +265,12 @@ class StorageService {
             text: questionMap['text'] as String,
             type: questionMap['type'] as String,
             askAgainAfterDays: questionMap['askAgainAfterDays'] as int,
-            config: questionMap['config'] != null ? Map<String, dynamic>.from(questionMap['config']) : {},
+            config: questionMap['config'] != null
+                ? Map<String, dynamic>.from(questionMap['config'])
+                : {},
           );
-          final newQuestionId = await _dbHelper.insertOrUpdateQuestion(questionToImport);
+          final newQuestionId =
+              await _dbHelper.insertOrUpdateQuestion(questionToImport);
           if (oldQuestionId != null) {
             oldToNewQuestionIdMap[oldQuestionId] = newQuestionId;
           }
@@ -267,7 +279,9 @@ class StorageService {
         for (var aData in answerList) {
           final answerMap = aData as Map<String, dynamic>;
           final oldQuestionId = answerMap['questionId'] as int?;
-          int? newQuestionId = oldQuestionId != null ? oldToNewQuestionIdMap[oldQuestionId] : null;
+          int? newQuestionId = oldQuestionId != null
+              ? oldToNewQuestionIdMap[oldQuestionId]
+              : null;
 
           if (newQuestionId != null) {
             Answer answerToImport = Answer(
@@ -282,7 +296,7 @@ class StorageService {
           print('Database imported successfully (Web).');
         }
       } else {
-         if (kDebugMode) {
+        if (kDebugMode) {
           print('No file selected or file data is null (Web).');
         }
       }
