@@ -213,4 +213,92 @@ class DatabaseHelper {
     final maps = await db.query('answers');
     return maps.map((map) => Answer.fromMap(map)).toList();
   }
+
+  // New method to get all data for export
+  Future<Map<String, List<Map<String, dynamic>>>> getAllData() async {
+    final questions = await fetchQuestions(); // Uses _mapToQuestion internally
+    final answers = await getAllAnswers();
+
+    // Convert Question objects to Maps using the new toMap method
+    final List<Map<String, dynamic>> questionMaps =
+        questions.map((q) => q.toMap()).toList();
+
+    // Answers are already converted to Maps by toMap in Answer model,
+    // used by getAllAnswers -> Answer.fromMap, so we need to ensure getAllAnswers returns List<Map> or convert here.
+    // getAllAnswers returns List<Answer>, so we map them.
+    final List<Map<String, dynamic>> answerMaps =
+        answers.map((a) => a.toMap()).toList();
+
+    return {
+      'questions': questionMaps,
+      'answers': answerMaps,
+    };
+  }
+
+  // New method to insert or update a question
+  // Returns the ID of the inserted or updated question
+  Future<int> insertOrUpdateQuestion(Question question) async {
+    final db = await database;
+    // Check if question with the same text exists.
+    // This is a simple way to check for duplicates. A more robust way might involve a UUID.
+    final List<Map<String, dynamic>> existing = await db.query(
+      'questions',
+      where: 'text = ?',
+      whereArgs: [question.text],
+      limit: 1,
+    );
+
+    Map<String, dynamic> questionDataToInsertOrUpdate = {
+      'text': question.text,
+      'type': question.type,
+      'askAgainAfterDays': question.askAgainAfterDays,
+      'config': jsonEncode(question.config),
+    };
+
+    if (existing.isNotEmpty) {
+      // Update existing question
+      final existingId = existing.first['id'] as int;
+      await db.update(
+        'questions',
+        questionDataToInsertOrUpdate,
+        where: 'id = ?',
+        whereArgs: [existingId],
+      );
+      return existingId;
+    } else {
+      // Insert new question
+      // The 'id' field from JSON (if present in question.id) is ignored here,
+      // as the database will assign a new auto-incremented ID.
+      return await db.insert('questions', questionDataToInsertOrUpdate);
+    }
+  }
+
+  // New method to insert or update an answer
+  Future<int> insertOrUpdateAnswer(Answer answer) async {
+    final db = await database;
+    // Check if an answer for the same question at the exact same timestamp exists
+    // This is a simple way to check for duplicates.
+    final List<Map<String, dynamic>> existing = await db.query(
+      'answers',
+      where: 'questionId = ? AND timestamp = ?',
+      whereArgs: [answer.questionId, answer.timestamp.toIso8601String()],
+      limit: 1,
+    );
+
+    if (existing.isNotEmpty) {
+      // Update existing answer (e.g., content might have changed)
+      final existingId = existing.first['id'] as int;
+      await db.update(
+        'answers',
+        answer.toMap(), // Assumes Answer.toMap() is suitable and doesn't include ID if not set
+        where: 'id = ?',
+        whereArgs: [existingId],
+      );
+      return existingId;
+    } else {
+      // Insert new answer
+      // The 'id' field from JSON (if present in answer.id) is ignored.
+      return await db.insert('answers', answer.toMap()..remove('id')); // Ensure 'id' is not passed for insert
+    }
+  }
 }

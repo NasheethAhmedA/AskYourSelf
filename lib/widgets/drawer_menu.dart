@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/manage_questions_screen.dart';
+import '../screens/settings_screen.dart'; // Import the SettingsScreen
 
 class DrawerMenu extends StatelessWidget {
   const DrawerMenu({super.key});
@@ -63,6 +64,20 @@ class DrawerMenu extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const SupportUsScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.settings, color: theme.iconTheme.color),
+            title: Text(
+              "Settings",
+              style: theme.textTheme.bodyLarge,
+            ),
+            onTap: () {
+              Navigator.pop(context); // Close drawer first
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
               );
             },
           ),
